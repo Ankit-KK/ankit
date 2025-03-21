@@ -105,6 +105,7 @@
     @apply inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-secondary text-secondary-foreground transition-all hover:bg-secondary/70;
   }
   
+  /* Enhanced appear animation */
   .appear {
     @apply opacity-0 transition-all duration-700 ease-out;
   }
@@ -113,11 +114,27 @@
     @apply opacity-100 translate-y-0;
   }
   
+  /* Navigation link animation */
   .nav-link {
     @apply relative px-3 py-2 text-muted-foreground hover:text-foreground transition-colors duration-200 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-full after:bg-primary after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100;
   }
   
   .nav-link.active {
     @apply text-foreground after:scale-x-100;
+  }
+  
+  /* Card hover effects */
+  .hover-card {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+  
+  /* Button hover animation */
+  .button-hover {
+    @apply hover:scale-105 active:scale-95 transition-all duration-200;
+  }
+  
+  /* Text reveal animation */
+  .text-reveal {
+    @apply transition-all duration-500 delay-100;
   }
 }

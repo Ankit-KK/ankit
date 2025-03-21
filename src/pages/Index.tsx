@@ -13,12 +13,39 @@ const Index = () => {
   useEffect(() => {
     // Scroll to top on page load
     window.scrollTo(0, 0);
+    
+    // Add animation class to the body when page loads
+    document.body.classList.add('animate-fade-in');
+    
+    // Setup reveal animation for sections
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('appear-active');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    // Apply to all sections with the appear class
+    document.querySelectorAll('.appear').forEach((element) => {
+      observer.observe(element);
+    });
+    
+    return () => {
+      document.querySelectorAll('.appear').forEach((element) => {
+        observer.unobserve(element);
+      });
+    };
   }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main>
+      <main className="animate-slide-in-bottom" style={{ animationDuration: '0.7s' }}>
         <Hero />
         <About />
         <Experience />
