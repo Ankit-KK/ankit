@@ -92,6 +92,14 @@ export default function Projects() {
     setVisibleProjects(filtered);
   }, [activeTab, searchTerm]);
   
+  // For debugging - add console logs to troubleshoot
+  useEffect(() => {
+    console.log("Total projects:", projects.length);
+    console.log("Visible projects:", visibleProjects.length);
+    console.log("Active tab:", activeTab);
+    console.log("Search term:", searchTerm);
+  }, [visibleProjects, activeTab, searchTerm]);
+  
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -108,8 +116,12 @@ export default function Projects() {
     const elements = sectionRef.current?.querySelectorAll('.appear');
     elements?.forEach(el => observer.observe(el));
     
-    return () => elements?.forEach(el => observer.unobserve(el));
-  }, []);
+    return () => {
+      if (elements) {
+        elements.forEach(el => observer.unobserve(el));
+      }
+    };
+  }, [visibleProjects]); // Add visibleProjects as dependency to re-observe new elements
 
   return (
     <section id="projects" ref={sectionRef} className="py-20">
