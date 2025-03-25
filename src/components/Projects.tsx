@@ -1,12 +1,7 @@
-
 import { useEffect, useRef, useState } from 'react';
-import { ExternalLink, Github, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { ProjectCard } from './ProjectCard';
 import { ProjectFilters } from './ProjectFilters';
+import { Button } from '@/components/ui/button';
 import { 
   Pagination, 
   PaginationContent, 
@@ -43,7 +38,7 @@ const projects: Project[] = [
   {
     title: "BrewMetrics",
     description: "Coffee order trend analysis dashboard providing actionable insights for inventory management.",
-    image: "https://images.unsplash.com/photo-1509042239860-f0ca3bf6d889?auto=format&fit=crop&q=80",
+    image: "public/lovable-uploads/f8c631ec-42e8-4b65-9bda-61f02648203b.png",
     techs: ["Excel", "Visualizations"],
   },
   {
@@ -84,11 +79,9 @@ export default function Projects() {
   const [currentPage, setCurrentPage] = useState(1);
   const projectsPerPage = 3;
   
-  // Extract all unique technologies from projects
   const allTechs = [...new Set(projects.flatMap(project => project.techs.map(tech => tech.toLowerCase())))];
   const categories = ["all", ...allTechs.sort()];
   
-  // Filter projects based on both activeTab and searchTerm
   useEffect(() => {
     const filtered = projects.filter(project => {
       const matchesTab = activeTab === "all" || 
@@ -103,10 +96,9 @@ export default function Projects() {
     });
     
     setVisibleProjects(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [activeTab, searchTerm]);
   
-  // For debugging - add console logs to troubleshoot
   useEffect(() => {
     console.log("Total projects:", projects.length);
     console.log("Visible projects:", visibleProjects.length);
@@ -114,13 +106,11 @@ export default function Projects() {
     console.log("Search term:", searchTerm);
   }, [visibleProjects, activeTab, searchTerm]);
   
-  // Calculate pagination
   const indexOfLastProject = currentPage * projectsPerPage;
   const indexOfFirstProject = indexOfLastProject - projectsPerPage;
   const currentProjects = visibleProjects.slice(indexOfFirstProject, indexOfLastProject);
   const totalPages = Math.ceil(visibleProjects.length / projectsPerPage);
   
-  // Animation observers
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -144,9 +134,8 @@ export default function Projects() {
         elements.forEach(el => observer.unobserve(el));
       }
     };
-  }, [currentPage, visibleProjects]); // Re-run when page or visible projects change
-
-  // Handle page change
+  }, [currentPage, visibleProjects]);
+  
   const paginate = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: sectionRef.current?.offsetTop || 0, behavior: 'smooth' });
@@ -160,7 +149,6 @@ export default function Projects() {
         </div>
         <h2 className="appear section-title">My Recent Work</h2>
         
-        {/* Search and Filter Components */}
         <ProjectFilters 
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -169,7 +157,6 @@ export default function Projects() {
           setActiveTab={setActiveTab}
         />
         
-        {/* Project Grid */}
         {currentProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             {currentProjects.map((project, index) => (
@@ -194,7 +181,6 @@ export default function Projects() {
           </div>
         )}
         
-        {/* Pagination */}
         {visibleProjects.length > projectsPerPage && (
           <div className="appear mt-10">
             <Pagination>
