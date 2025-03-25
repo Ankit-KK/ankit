@@ -1,11 +1,22 @@
 
 import { useEffect, useRef, useState } from 'react';
-import { ExternalLink, Github, Search } from 'lucide-react';
+import { ExternalLink, Github, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { ProjectCard } from './ProjectCard';
+import { ProjectFilters } from './ProjectFilters';
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from '@/components/ui/pagination';
 
-interface Project {
+export interface Project {
   title: string;
   description: string;
   image: string;
@@ -70,13 +81,15 @@ export default function Projects() {
   const [activeTab, setActiveTab] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [visibleProjects, setVisibleProjects] = useState<Project[]>(projects);
+  const [currentPage, setCurrentPage] = useState(1);
+  const projectsPerPage = 3;
   
   // Extract all unique technologies from projects
   const allTechs = [...new Set(projects.flatMap(project => project.techs.map(tech => tech.toLowerCase())))];
   const categories = ["all", ...allTechs.sort()];
   
+  // Filter projects based on both activeTab and searchTerm
   useEffect(() => {
-    // Filter projects based on both activeTab and searchTerm
     const filtered = projects.filter(project => {
       const matchesTab = activeTab === "all" || 
         project.techs.some(tech => tech.toLowerCase() === activeTab.toLowerCase());
@@ -90,6 +103,7 @@ export default function Projects() {
     });
     
     setVisibleProjects(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [activeTab, searchTerm]);
   
   // For debugging - add console logs to troubleshoot
@@ -100,6 +114,13 @@ export default function Projects() {
     console.log("Search term:", searchTerm);
   }, [visibleProjects, activeTab, searchTerm]);
   
+  // Calculate pagination
+  const indexOfLastProject = currentPage * projectsPerPage;
+  const indexOfFirstProject = indexOfLastProject - projectsPerPage;
+  const currentProjects = visibleProjects.slice(indexOfFirstProject, indexOfLastProject);
+  const totalPages = Math.ceil(visibleProjects.length / projectsPerPage);
+  
+  // Animation observers
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -114,14 +135,22 @@ export default function Projects() {
     );
     
     const elements = sectionRef.current?.querySelectorAll('.appear');
-    elements?.forEach(el => observer.observe(el));
+    if (elements) {
+      elements.forEach(el => observer.observe(el));
+    }
     
     return () => {
       if (elements) {
         elements.forEach(el => observer.unobserve(el));
       }
     };
-  }, [visibleProjects]); // Add visibleProjects as dependency to re-observe new elements
+  }, [currentPage, visibleProjects]); // Re-run when page or visible projects change
+
+  // Handle page change
+  const paginate = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: sectionRef.current?.offsetTop || 0, behavior: 'smooth' });
+  };
 
   return (
     <section id="projects" ref={sectionRef} className="py-20">
@@ -131,100 +160,71 @@ export default function Projects() {
         </div>
         <h2 className="appear section-title">My Recent Work</h2>
         
-        <div className="appear max-w-xl mx-auto mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search projects by name, description, or technology..."
-              className="pl-10 pr-4 py-2 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
+        {/* Search and Filter Components */}
+        <ProjectFilters 
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          categories={categories}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
         
-        <div className="appear mb-12 flex flex-wrap justify-center gap-2">
-          {categories.map((category) => (
-            <Badge
-              key={category}
-              variant={activeTab === category ? "default" : "outline"}
-              className={cn(
-                "cursor-pointer text-sm px-3 py-1 capitalize transition-all duration-300",
-                activeTab === category 
-                  ? "bg-primary text-primary-foreground" 
-                  : "hover:bg-secondary"
-              )}
-              onClick={() => setActiveTab(category)}
-            >
-              {category}
-            </Badge>
-          ))}
-        </div>
-        
-        {visibleProjects.length > 0 ? (
+        {/* Project Grid */}
+        {currentProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-            {visibleProjects.map((project, index) => (
-              <div 
-                key={index}
-                className="appear glass-card overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-2"
-                style={{ animationDelay: `${0.1 * index}s` }}
-              >
-                <div className="aspect-video w-full overflow-hidden">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                </div>
-                
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                  <p className="text-muted-foreground mb-4">{project.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-5">
-                    {project.techs.map((tech, techIndex) => (
-                      <Badge 
-                        key={techIndex}
-                        variant="secondary"
-                        className="text-xs"
-                      >
-                        {tech}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    {project.demoUrl && (
-                      <a
-                        href={project.demoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-sm font-medium text-primary hover:underline transition-colors"
-                      >
-                        <ExternalLink className="h-4 w-4 mr-1" /> Live Demo
-                      </a>
-                    )}
-                    
-                    {project.githubUrl && (
-                      <a
-                        href={project.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-sm font-medium text-primary hover:underline transition-colors"
-                      >
-                        <Github className="h-4 w-4 mr-1" /> GitHub
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
+            {currentProjects.map((project, index) => (
+              <ProjectCard 
+                key={`${project.title}-${index}`}
+                project={project}
+                index={index}
+              />
             ))}
           </div>
         ) : (
           <div className="text-center py-16">
             <h3 className="text-xl font-semibold mb-2">No matching projects found</h3>
             <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+            <Button 
+              variant="outline" 
+              className="mt-4" 
+              onClick={() => { setSearchTerm(''); setActiveTab('all'); }}
+            >
+              Reset filters
+            </Button>
+          </div>
+        )}
+        
+        {/* Pagination */}
+        {visibleProjects.length > projectsPerPage && (
+          <div className="appear mt-10">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => currentPage > 1 && paginate(currentPage - 1)}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }).map((_, index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink
+                      isActive={currentPage === index + 1}
+                      onClick={() => paginate(index + 1)}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
       </div>
