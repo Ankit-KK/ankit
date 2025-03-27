@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { ProjectCard } from './ProjectCard';
 import { ProjectFilters } from './ProjectFilters';
@@ -71,6 +72,25 @@ const projects: Project[] = [
   },
 ];
 
+// Map technologies to consolidated categories
+const techToCategory = {
+  "Python": "Data Science",
+  "LLaMA 3.1": "AI",
+  "Streamlit": "Data Science",
+  "Excel": "Business Intelligence",
+  "Visualizations": "Business Intelligence",
+  "NLP": "AI",
+  "Naive Bayes": "Machine Learning",
+  "Logistic Regression": "Machine Learning",
+  "Prophet": "Data Science",
+  "Plotly": "Data Visualization",
+  "Random Forest": "Machine Learning",
+  "Neural Networks": "Machine Learning",
+  "K-Means": "Machine Learning",
+  "Pandas": "Data Science",
+  "NumPy": "Data Science"
+};
+
 export default function Projects() {
   const sectionRef = useRef<HTMLElement>(null);
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -79,13 +99,26 @@ export default function Projects() {
   const [currentPage, setCurrentPage] = useState(1);
   const projectsPerPage = 3;
   
-  const allTechs = [...new Set(projects.flatMap(project => project.techs.map(tech => tech.toLowerCase())))];
-  const categories = ["all", ...allTechs.sort()];
+  // Create consolidated categories
+  const getProjectCategories = (project: Project): string[] => {
+    const categories = new Set<string>();
+    project.techs.forEach(tech => {
+      const category = techToCategory[tech as keyof typeof techToCategory];
+      if (category) categories.add(category);
+    });
+    return Array.from(categories);
+  };
+  
+  // Get all unique categories
+  const allCategories = [...new Set(projects.flatMap(project => getProjectCategories(project)))];
+  const categories = ["all", ...allCategories.sort()];
   
   useEffect(() => {
     const filtered = projects.filter(project => {
+      const projectCategories = getProjectCategories(project);
+      
       const matchesTab = activeTab === "all" || 
-        project.techs.some(tech => tech.toLowerCase() === activeTab.toLowerCase());
+        (activeTab !== "all" && projectCategories.includes(activeTab));
       
       const matchesSearch = searchTerm === "" || 
         project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
