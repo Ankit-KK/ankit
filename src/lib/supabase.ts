@@ -1,9 +1,9 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Get environment variables with fallback to placeholder values that won't crash the app
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
+// Use the provided Supabase credentials
+const supabaseUrl = 'https://vsevsjvtrshgeiudrnth.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXZzanZ0cnNoZ2VpdWRybnRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODE1ODEsImV4cCI6MjA1ODE1NzU4MX0.uLkTc3a0kdMNfgIg2qYKnnaLjbvtXGKPOoWbqntibmw';
 
 // Create a single supabase client for interacting with your database
 export const supabase = createClient(
@@ -11,9 +11,7 @@ export const supabase = createClient(
   supabaseAnonKey
 );
 
-// Add a clear warning about missing environment variables
-if (supabaseUrl === 'https://placeholder-project.supabase.co' || supabaseAnonKey === 'placeholder-key') {
-  console.warn(
-    '⚠️ Using placeholder Supabase credentials. Authentication will not work. Please create a .env file in the root directory with your Supabase URL and anon key based on the .env.example file.'
-  );
-}
+// Check if we're using proper credentials
+export const isUsingRealCredentials = 
+  supabaseUrl !== 'https://placeholder-project.supabase.co' && 
+  supabaseAnonKey !== 'placeholder-key';

@@ -1,7 +1,6 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, isUsingRealCredentials } from '@/lib/supabase';
 
 type AuthContextType = {
   user: User | null;
@@ -20,10 +19,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Check if using placeholder credentials
-  const isUsingPlaceholderCredentials = 
-    supabase.supabaseUrl === 'https://placeholder-project.supabase.co' || 
-    supabase.supabaseKey === 'placeholder-key';
+  // Use the exported flag instead of checking protected properties
+  const isUsingPlaceholderCredentials = !isUsingRealCredentials;
 
   useEffect(() => {
     // Get initial session
