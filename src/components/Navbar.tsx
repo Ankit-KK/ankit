@@ -1,8 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn, UserPlus, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
+import { Button } from "./ui/button";
 
 interface NavLink {
   name: string;
@@ -22,6 +25,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,6 +50,14 @@ export default function Navbar() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
 
   return (
     <header
@@ -79,14 +91,48 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
-          <div className="pl-4">
+          
+          <div className="pl-4 flex items-center gap-2">
             <ThemeToggle />
+            
+            {user ? (
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-1">
+                <LogOut className="h-4 w-4" />
+                <span>Sign Out</span>
+              </Button>
+            ) : (
+              <>
+                <Link to="/signin">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                    <LogIn className="h-4 w-4" />
+                    <span>Sign In</span>
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <UserPlus className="h-4 w-4" />
+                    <span>Sign Up</span>
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
         {/* Mobile Menu Controls */}
         <div className="flex items-center md:hidden space-x-4">
           <ThemeToggle />
+          {user ? (
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-1">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Link to="/signin">
+              <Button variant="ghost" size="icon">
+                <LogIn className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-secondary transition-colors"
@@ -130,6 +176,31 @@ export default function Navbar() {
                     </a>
                   </li>
                 ))}
+                
+                {!user ? (
+                  <>
+                    <li>
+                      <Link to="/signin" onClick={() => setIsOpen(false)}>
+                        <Button variant="ghost" className="w-full justify-start text-2xl font-medium flex gap-2 h-auto p-0">
+                          <LogIn className="h-5 w-5" /> Sign In
+                        </Button>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/signup" onClick={() => setIsOpen(false)}>
+                        <Button variant="ghost" className="w-full justify-start text-2xl font-medium flex gap-2 h-auto p-0">
+                          <UserPlus className="h-5 w-5" /> Sign Up
+                        </Button>
+                      </Link>
+                    </li>
+                  </>
+                ) : (
+                  <li>
+                    <Button variant="ghost" className="w-full justify-start text-2xl font-medium flex gap-2 h-auto p-0" onClick={handleSignOut}>
+                      <LogOut className="h-5 w-5" /> Sign Out
+                    </Button>
+                  </li>
+                )}
               </ul>
             </nav>
           </div>
