@@ -1,17 +1,8 @@
 
 import { useState, useEffect } from "react";
-import { Menu, X, LogIn, User } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-
-// Import Clerk but make the usage conditional
-const clerkImport = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? 
-  require('@clerk/clerk-react') : 
-  { useUser: () => ({ isSignedIn: false, user: null }), useAuth: () => ({ signOut: async () => {} }), SignOutButton: () => null };
-
-const { useUser, useAuth, SignOutButton } = clerkImport;
 
 interface NavLink {
   name: string;
@@ -31,10 +22,6 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [isScrolled, setIsScrolled] = useState(false);
-  const { isSignedIn, user } = useUser();
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
-  const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,13 +46,6 @@ export default function Navbar() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleSignOut = async () => {
-    if (isClerkAvailable) {
-      await signOut();
-    }
-    navigate("/");
-  };
 
   return (
     <header
@@ -99,60 +79,14 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
-          
-          <div className="pl-4 flex items-center space-x-3">
+          <div className="pl-4">
             <ThemeToggle />
-            
-            {isClerkAvailable && (
-              <>
-                {isSignedIn ? (
-                  <div className="flex items-center gap-3">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="hidden sm:flex"
-                      onClick={() => navigate("/dashboard")}
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      Dashboard
-                    </Button>
-                    <SignOutButton>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                      >
-                        Sign out
-                      </Button>
-                    </SignOutButton>
-                  </div>
-                ) : (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate("/sign-in")}
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Sign in
-                  </Button>
-                )}
-              </>
-            )}
           </div>
         </nav>
 
         {/* Mobile Menu Controls */}
         <div className="flex items-center md:hidden space-x-4">
           <ThemeToggle />
-          {isClerkAvailable && isSignedIn && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="px-2"
-              onClick={() => navigate("/dashboard")}
-            >
-              <User className="h-4 w-4" />
-            </Button>
-          )}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-secondary transition-colors"
@@ -196,45 +130,6 @@ export default function Navbar() {
                     </a>
                   </li>
                 ))}
-                
-                {isClerkAvailable && (
-                  <>
-                    {isSignedIn ? (
-                      <>
-                        <li>
-                          <a
-                            onClick={() => {
-                              navigate("/dashboard");
-                              setIsOpen(false);
-                            }}
-                            className="text-2xl font-medium hover:text-primary transition-colors cursor-pointer"
-                          >
-                            Dashboard
-                          </a>
-                        </li>
-                        <li>
-                          <SignOutButton>
-                            <button className="text-2xl font-medium hover:text-primary transition-colors">
-                              Sign out
-                            </button>
-                          </SignOutButton>
-                        </li>
-                      </>
-                    ) : (
-                      <li>
-                        <a
-                          onClick={() => {
-                            navigate("/sign-in");
-                            setIsOpen(false);
-                          }}
-                          className="text-2xl font-medium hover:text-primary transition-colors cursor-pointer"
-                        >
-                          Sign in
-                        </a>
-                      </li>
-                    )}
-                  </>
-                )}
               </ul>
             </nav>
           </div>
