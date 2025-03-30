@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
@@ -18,7 +19,7 @@ const formSchema = z.object({
 
 export default function SignIn() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, isUsingPlaceholderCredentials } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -37,7 +38,13 @@ export default function SignIn() {
       navigate("/");
     } catch (error) {
       console.error("SignIn error:", error);
-      toast.error("Failed to sign in. Please check your credentials.");
+      
+      // Check if it's our specific configuration error
+      if (error instanceof Error && error.message.includes("Supabase connection not properly configured")) {
+        toast.error("Cannot sign in: Missing Supabase configuration");
+      } else {
+        toast.error("Failed to sign in. Please check your credentials.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -53,6 +60,15 @@ export default function SignIn() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {isUsingPlaceholderCredentials && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>
+                <p className="font-medium">App not configured properly</p>
+                <p>Supabase credentials are missing. Authentication will not work until you add your Supabase URL and anon key to your .env file.</p>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -66,7 +82,7 @@ export default function SignIn() {
                         type="email" 
                         placeholder="name@example.com" 
                         {...field} 
-                        disabled={isLoading}
+                        disabled={isLoading || isUsingPlaceholderCredentials}
                       />
                     </FormControl>
                     <FormMessage />
@@ -84,14 +100,18 @@ export default function SignIn() {
                         type="password" 
                         placeholder="••••••••" 
                         {...field} 
-                        disabled={isLoading}
+                        disabled={isLoading || isUsingPlaceholderCredentials}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading || isUsingPlaceholderCredentials}
+              >
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>

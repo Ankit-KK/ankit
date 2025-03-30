@@ -10,6 +10,7 @@ type AuthContextType = {
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  isUsingPlaceholderCredentials: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,40 +19,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Check if using placeholder credentials
+  const isUsingPlaceholderCredentials = 
+    supabase.supabaseUrl === 'https://placeholder-project.supabase.co' || 
+    supabase.supabaseKey === 'placeholder-key';
 
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
       setIsLoading(true);
       
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Error getting session:', error);
+      // Skip the API call if we're using placeholder credentials
+      if (isUsingPlaceholderCredentials) {
+        setIsLoading(false);
+        return;
       }
       
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+      } catch (error) {
+        console.error('Failed to get session:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     getInitialSession();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoading(false);
-      }
-    );
+    // Only set up auth state listener if we're not using placeholder credentials
+    if (!isUsingPlaceholderCredentials) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setIsLoading(false);
+        }
+      );
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [isUsingPlaceholderCredentials]);
 
   const signUp = async (email: string, password: string) => {
+    // Check if using placeholder credentials before attempting API call
+    if (isUsingPlaceholderCredentials) {
+      throw new Error('Cannot create account: Supabase connection not properly configured. Please add your Supabase credentials to your .env file.');
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -61,6 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    // Check if using placeholder credentials before attempting API call
+    if (isUsingPlaceholderCredentials) {
+      throw new Error('Cannot sign in: Supabase connection not properly configured. Please add your Supabase credentials to your .env file.');
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -70,6 +99,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    // Check if using placeholder credentials before attempting API call
+    if (isUsingPlaceholderCredentials) {
+      throw new Error('Cannot sign out: Supabase connection not properly configured. Please add your Supabase credentials to your .env file.');
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
@@ -81,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signOut,
+    isUsingPlaceholderCredentials,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
