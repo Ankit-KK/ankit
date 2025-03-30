@@ -38,7 +38,7 @@ export default function Dashboard() {
                 <p className="text-muted-foreground mb-4">
                   Manage your personal information and preferences
                 </p>
-                <Button onClick={() => window.open(user.profileImageUrl, '_blank')} variant="outline" className="w-full">
+                <Button onClick={() => user.imageUrl && window.open(user.imageUrl, '_blank')} variant="outline" className="w-full">
                   View Profile
                 </Button>
               </div>
