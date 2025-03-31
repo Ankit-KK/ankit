@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
+import VisitorCounter from "./VisitorCounter";
 
 interface NavLink {
   name: string;
@@ -55,12 +56,15 @@ export default function Navbar() {
       )}
     >
       <div className="max-w-7xl mx-auto px-6 sm:px-8 md:px-12 flex items-center justify-between">
-        <a 
-          href="#home" 
-          className="text-2xl font-bold font-display tracking-tight"
-        >
-          Ankit<span className="text-primary">.</span>
-        </a>
+        <div className="flex items-center gap-4">
+          <a 
+            href="#home" 
+            className="text-2xl font-bold font-display tracking-tight"
+          >
+            Ankit<span className="text-primary">.</span>
+          </a>
+          <VisitorCounter className="hidden sm:flex" />
+        </div>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-1">
@@ -108,7 +112,8 @@ export default function Navbar() {
           )}
         >
           <div className="flex flex-col h-full p-8">
-            <div className="flex justify-end mb-8">
+            <div className="flex justify-between items-center mb-8">
+              <VisitorCounter />
               <button
                 onClick={() => setIsOpen(false)}
                 className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-secondary transition-colors"
